@@ -1,0 +1,16 @@
+{
+  "name": "example",
+  "version": "0.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "node.extend": "^1.1.5",
+    "zetta": "^1.0.0-beta.6"
+  }
+}
