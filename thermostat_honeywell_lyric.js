@@ -27,7 +27,7 @@ util.inherits(Thermostat, Device);
 
 Thermostat.prototype.init = function(config) {
   config
-  .name('Hallway Thermostat')
+  .name('Lyric Thermostat')
   .type('thermostat')
   .state(this.state)
   .when('off', {allow: ['heat', 'cool']})
