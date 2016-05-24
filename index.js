@@ -44,7 +44,7 @@ ThermostatScout.prototype.init = function(next) {
         if (results[0]) {
           self.provision(results[0], Thermostat, opts);
         } else {
-          self.discover(ThermostatScout, opts);
+          self.discover(Thermostat, opts);
         }
       });
     }
