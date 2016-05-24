@@ -13,12 +13,11 @@ var Thermostat = module.exports = function(opts) {
     this[properties[i]] = opts.data[properties[i]];
   }
 
-  // these will be set above once the Lyric API `thermostat` (singular) call works
-  // this.mode = "Heat";
-  // this.autoChangeoverActive = 'true';
-  // this.heatSetpoint = 60.0000;
-  // this.coolSetpoint = 80.0000;
- 
+  this.mode = opts.data.changeableValues.mode;
+  this.state = this._stateFromMode(this.mode);
+  this.autoChangeoverActive = opts.data.changeableValues.autoChangeoverActive;
+  this.heatSetpoint = opts.data.changeableValues.heatSetpoint;
+  this.coolSetpoint = opts.data.changeableValues.coolSetpoint; 
   this._lyricAPI = opts.restClient;
   this._bearer = opts.bearer;
   this._apiKey = opts.apiKey;
@@ -30,7 +29,7 @@ Thermostat.prototype.init = function(config) {
   config
   .name('Hallway Thermostat')
   .type('thermostat')
-  .state('off')
+  .state(this.state)
   .when('off', {allow: ['heat', 'cool']})
   .when('heating', {allow: ['off', 'cool', 'setSetpoint']})
   .when('cooling', {allow: ['off', 'heat', 'setSetpoint']})
@@ -38,11 +37,12 @@ Thermostat.prototype.init = function(config) {
   .map('cool', this.cool)
   .map('off', this.off)
   .map('setSetpoint', this.setSetpoint, [{ type:'text', name: 'setpoint'}])
-  .monitor('outdoorTemperature')
-  .monitor('outdoorHumidity')
   .monitor('indoorTemperature')
+  .monitor('outdoorTemperature')
   .monitor('indoorHumidity')
-  .monitor('setpoint');
+  .monitor('autoChangeoverActive')
+  .monitor('heatSetpoint')
+  .monitor('coolSetpoint');
 };
 
 Thermostat.prototype.off = function(cb) {
@@ -90,9 +90,21 @@ Thermostat.prototype._post = function(newArgs) {
 
   console.log('newArgs: ' + util.inspect(newArgs));
   console.log('args: ' + util.inspect(args));
-  this._lyricAPI.post("https://api.honeywell.com/v2/devices/thermostat/TCC-1698680?apikey=" + this._apiKey + "&locationId=54086", args, function (data, response) {
+  this._lyricAPI.post("https://api.honeywell.com/v2/devices/thermostats/TCC-1698680?apikey=" + this._apiKey + "&locationId=54086", args, function (data, response) {
     // parsed response body as js object
     console.log('api data: ' + util.inspect(data));
   });
 }
 
+Thermostat.prototype._stateFromMode = function(mode) {
+  var state = 'off';
+  switch (mode) {
+  case 'Cool':
+    state = 'cooling';
+    break;
+  case 'Heat':
+    state = 'heating';
+    break;
+  }
+  return state;
+}
