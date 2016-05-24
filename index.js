@@ -1,4 +1,4 @@
-var BEARER = 'kxeHGhq78E4oqoZ0MLaoQAey7Yp2';
+var BEARER = process.env.HONEYWELL_LYRIC_BEARER_TOKEN;
 
 var API_KEY = process.env.HONEYWELL_LYRIC_CONSUMER_KEY;
 var Scout = require('zetta-scout');
