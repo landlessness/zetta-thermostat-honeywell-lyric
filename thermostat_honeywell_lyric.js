@@ -7,21 +7,16 @@ var Thermostat = module.exports = function(opts) {
 
   this._opts = opts || {};
 
-  console.log('inspect: ' + util.inspect(opts.data));
-  var properties = Object.keys(opts.data);
-  for (i=0; i<properties.length; i++) {
-    this[properties[i]] = opts.data[properties[i]];
-  }
-
-  this.mode = opts.data.changeableValues.mode;
-  this.state = this._stateFromMode(this.mode);
-  this.autoChangeoverActive = opts.data.changeableValues.autoChangeoverActive;
-  this.heatSetpoint = opts.data.changeableValues.heatSetpoint;
-  this.coolSetpoint = opts.data.changeableValues.coolSetpoint; 
-  this._lyricAPI = opts.restClient;
-  this._bearer = opts.bearer;
-  this._apiKey = opts.apiKey;
-
+  this._lyricAPI = this._opts.restClient;
+  this._bearer = this._opts.bearer;
+  this._apiKey = this._opts.apiKey;
+  this.locationID = this._opts.locationID;
+  console.log('opts.locationID: ' + opts.locationID);
+  console.log('locationID: ' + this.locationID);
+  
+  this._syncState();
+  var self = this;
+  setInterval(function() {self._syncState()}, 5000);
 };
 util.inherits(Thermostat, Device);
 
@@ -48,51 +43,80 @@ Thermostat.prototype.init = function(config) {
 Thermostat.prototype.off = function(cb) {
   this.state = 'off';
   this.mode = 'Off';
-  cb();
-  this._post({"mode": "Off"})
+  this._post({"mode": "Off"}, cb)
 }
 
 Thermostat.prototype.heat = function(cb) {
   this.state = 'heating';
   this.mode = 'Heat';
-  cb();
-  this._post({"mode": "Heat"})
+  this._post({"mode": "Heat"}, cb)
 }
 
 Thermostat.prototype.cool = function(cb) {
   this.state = 'cooling'
   this.mode = 'Cool';
-  cb();
-  this._post({"mode": "Cool"})
+  this._post({"mode": "Cool"}, cb)
 }
 
 Thermostat.prototype.setSetpoint = function(setpoint, cb) {
   this.setpoint = this.coolSetpoint = this.heatSetpoint = setpoint;
-  cb();
-  this._post({"heatSetpoint": setpoint, "coolSetpoint": setpoint})
+  this._post({"heatSetpoint": setpoint, "coolSetpoint": setpoint}, cb)
 }
 
-Thermostat.prototype._post = function(newArgs) {
+Thermostat.prototype._post = function(newArgs, cb) {
+  var postData = {
+    "mode": this.mode,
+    "autoChangeoverActive": this.autoChangeoverActive,
+    "heatSetpoint": this.setpoint,
+    "coolSetpoint": this.setpoint
+  };
+
+  postData = extend(postData, newArgs);
+  console.log('newArgs: ' + util.inspect(newArgs));
+  console.log('postData: ' + util.inspect(postData));
   var args = {
-    data: {
-      "mode": this.mode,
-      "autoChangeoverActive": this.autoChangeoverActive,
-      "heatSetpoint": this.heatSetpoint,
-      "coolSetpoint": this.coolSetpoint
-    },
-    headers: { 
+    data: postData,
+    headers: {
       "Authorization": "Bearer " + this._bearer,
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
+      "Content-Length": JSON.stringify(postData).length
     }
   };
 
-  args = extend(args, newArgs);
 
   console.log('newArgs: ' + util.inspect(newArgs));
   console.log('args: ' + util.inspect(args));
-  this._lyricAPI.post("https://api.honeywell.com/v2/devices/thermostats/TCC-1698680?apikey=" + this._apiKey + "&locationId=54086", args, function (data, response) {
+  var thermostatsURL ="https://api.honeywell.com/v2/devices/thermostats/" + this.deviceID + "?apikey=" + this._apiKey + "&locationId=" + this.locationID;
+  console.log('thermostatsURL: ' + thermostatsURL); 
+  this._lyricAPI.post(thermostatsURL, args, function (data, response) {
     // parsed response body as js object
+    console.log('response.statusCode: ' + response.statusCode);
     console.log('api data: ' + util.inspect(data));
+    console.log('api response: ' + util.inspect(response));
+    if (response.statusCode === 200){ 
+      cb();
+    }
+  });
+}
+
+Thermostat.prototype._syncState = function() {
+  var self = this;
+  this._lyricAPI.get(this._opts.devicesURL, this._opts.args, function (data, response) {
+    console.log('3');
+    console.log(util.inspect(data));
+    console.log('4');
+    var properties = Object.keys(data[0]);
+    for (i=0; i<properties.length; i++) {
+      self[properties[i]] = data[0][properties[i]];
+    }
+
+    self.setpoint = self.coolSetpoint = self.heatSetpoint;
+
+    self.mode = data[0].changeableValues.mode;
+    self.state = self._stateFromMode(self.mode);
+    self.autoChangeoverActive = data[0].changeableValues.autoChangeoverActive;
+    self.heatSetpoint = data[0].changeableValues.heatSetpoint;
+    self.coolSetpoint = data[0].changeableValues.coolSetpoint; 
   });
 }
 

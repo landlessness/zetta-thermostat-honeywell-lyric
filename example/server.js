@@ -6,5 +6,5 @@ zetta()
   .name("Honeywell Lyric")
   .use(Thermostat)
   .use(style)
-  .link("http://honeywell.zettaapi.org")
+  .link("http://dev.zettaapi.org")
   .listen(1337);
