@@ -36,6 +36,7 @@ Thermostat.prototype.init = function(config) {
   .monitor('outdoorTemperature')
   .monitor('indoorHumidity')
   .monitor('autoChangeoverActive')
+  .monitor('setpoint')
   .monitor('heatSetpoint')
   .monitor('coolSetpoint');
 };
@@ -111,13 +112,12 @@ Thermostat.prototype._syncState = function() {
         self[properties[i]] = data[0][properties[i]];
       }
 
-      self.setpoint = self.coolSetpoint = self.heatSetpoint;
-
       self.mode = data[0].changeableValues.mode;
       self.state = self._stateFromMode(self.mode);
       self.autoChangeoverActive = data[0].changeableValues.autoChangeoverActive;
       self.heatSetpoint = data[0].changeableValues.heatSetpoint;
-      self.coolSetpoint = data[0].changeableValues.coolSetpoint; 
+      self.coolSetpoint = data[0].changeableValues.coolSetpoint;
+      self.setpoint = (self.mode === 'Cool') ? self.coolSetpoint : self.heatSetpoint;
     }
   });
 }

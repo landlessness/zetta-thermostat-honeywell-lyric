@@ -1,6 +1,6 @@
 {
   "name": "zetta-thermostat-honeywell-lyric-driver",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Zetta thermostat driver for Honeywell Lyric.",
   "main": "index.js",
   "scripts": {
