@@ -105,18 +105,20 @@ Thermostat.prototype._syncState = function() {
     console.log('3');
     console.log(util.inspect(data));
     console.log('4');
-    var properties = Object.keys(data[0]);
-    for (i=0; i<properties.length; i++) {
-      self[properties[i]] = data[0][properties[i]];
+    if (data.length > 0 ) {
+      var properties = Object.keys(data[0]);
+      for (i=0; i<properties.length; i++) {
+        self[properties[i]] = data[0][properties[i]];
+      }
+
+      self.setpoint = self.coolSetpoint = self.heatSetpoint;
+
+      self.mode = data[0].changeableValues.mode;
+      self.state = self._stateFromMode(self.mode);
+      self.autoChangeoverActive = data[0].changeableValues.autoChangeoverActive;
+      self.heatSetpoint = data[0].changeableValues.heatSetpoint;
+      self.coolSetpoint = data[0].changeableValues.coolSetpoint; 
     }
-
-    self.setpoint = self.coolSetpoint = self.heatSetpoint;
-
-    self.mode = data[0].changeableValues.mode;
-    self.state = self._stateFromMode(self.mode);
-    self.autoChangeoverActive = data[0].changeableValues.autoChangeoverActive;
-    self.heatSetpoint = data[0].changeableValues.heatSetpoint;
-    self.coolSetpoint = data[0].changeableValues.coolSetpoint; 
   });
 }
 
