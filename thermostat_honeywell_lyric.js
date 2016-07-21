@@ -16,7 +16,7 @@ var Thermostat = module.exports = function(opts) {
   
   this._syncState();
   var self = this;
-  setInterval(function() {self._syncState()}, 5000);
+  setInterval(function() {self._syncState()}, 1000);
 };
 util.inherits(Thermostat, Device);
 
