@@ -10,7 +10,7 @@ $> npm install zetta-thermostat-honeywell-lyric-driver
 
 ```javascript
 var zetta = require('zetta');
-var Thermostat = require('zetta-thermostat-honeywell-lyric');
+var Thermostat = require('zetta-thermostat-honeywell-lyric-driver');
 
 zetta()
   .use(Thermostat)
